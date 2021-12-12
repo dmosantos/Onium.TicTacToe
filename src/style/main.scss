@@ -1,0 +1,41 @@
+:root {
+
+    --theme-color: #{$themeColor};
+    --link-color: #{$linkColor};
+
+}
+
+*,
+::after,
+::before { box-sizing: border-box; }
+
+html {
+
+    color: #000;
+    // font-family: 'Raleway', sans-serif;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 16px;
+
+}
+
+a {
+
+    color: var(--link-color);
+    text-decoration: none;
+
+    &:hover {
+
+        text-decoration: underline;
+
+    }
+
+}
+
+a,
+a,
+button,
+button:hover {
+
+    transition: all .1s linear;
+
+}

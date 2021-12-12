@@ -1,4 +1,3 @@
-# Onium.TicTacToe
 # tictactoe
 
 ## Project setup

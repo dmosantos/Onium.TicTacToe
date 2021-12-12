@@ -1,5 +1,13 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+    <Template>
+
+        About
+
+    </Template>
 </template>
+
+<script setup>
+
+import Template from '@/templates/DefaultTemplate'
+
+</script>
