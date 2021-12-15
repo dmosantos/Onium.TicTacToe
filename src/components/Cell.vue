@@ -59,7 +59,9 @@ const clickHandler = () => emit('click', props.row, props.col)
     cursor: pointer;
     font-family: 'Cabin', sans-serif;
     height: $boardSize / 3;
-    width: $boardSize / 3;
+    width: 33%;
+
+    @media screen and (max-width: 350px) { height: $boardSize / 4; }
 
     &--success { background-color: rgba(0, 255, 0, .2); }
 
@@ -94,6 +96,8 @@ const clickHandler = () => emit('click', props.row, props.col)
         font-size: $boardSize / 5;
         font-weight: 700;
         text-transform: uppercase;
+
+        @media screen and (max-width: 350px) { font-size: $boardSize / 7; }
 
         &--x { color: #4a6ab1; }
         &--o { color: #509d47; }

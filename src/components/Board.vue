@@ -280,8 +280,9 @@ const computerHard = () => {
 
     border-radius: 15px;
     margin: 0 auto 2rem auto;
+    max-width: $boardSize;
+    min-width: 250px;
     overflow: hidden;
-    width: $boardSize;
 
 }
 
