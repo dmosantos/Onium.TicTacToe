@@ -7,7 +7,6 @@
 
             <router-link class="menu__item" to="/">Home</router-link>
             <router-link class="menu__item" to="/play">Play</router-link>
-            <router-link class="menu__item" to="/about">About</router-link>
 
         </menu>
 

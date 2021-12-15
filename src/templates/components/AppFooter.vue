@@ -1,7 +1,7 @@
 <template>
     <footer class="app-footer">
 
-        <p>Developed by Diego Marques - <a href="https://diegomarques.com.br/" title="diegomarques.com.br">diegomarques.com.br</a></p>
+        <p>Developed by Diego Marques - <a href="https://diegomarques.com.br/" title="diegomarques.com.br" target="_blank">diegomarques.com.br</a></p>
 
     </footer>
 </template>

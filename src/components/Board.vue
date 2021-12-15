@@ -1,68 +1,58 @@
 <template>
-    <section class="board">
+    <div class="board">
 
-        <header class="board__header">
-
-            <h1 class="board__title">{{ title }}</h1>
-
-        </header>
-
-        <div class="board__content">
-
-            <div class="row">
+        <div class="row">
+        
+            <Cell :row="0" :col="0" @click="doMarkHandler" />
+            <Cell :row="0" :col="1" @click="doMarkHandler" />
+            <Cell :row="0" :col="2" @click="doMarkHandler" />
+        
+        </div>
+        <div class="row">
             
-                <Cell :row="0" :col="0" @click="doMarkHandler" />
-                <Cell :row="0" :col="1" @click="doMarkHandler" />
-                <Cell :row="0" :col="2" @click="doMarkHandler" />
-            
-            </div>
-            <div class="row">
-                
-                <Cell :row="1" :col="0" @click="doMarkHandler" />
-                <Cell :row="1" :col="1" @click="doMarkHandler" />
-                <Cell :row="1" :col="2" @click="doMarkHandler" />
-
-            </div>
-            <div class="row">
-            
-                <Cell :row="2" :col="0" @click="doMarkHandler" />
-                <Cell :row="2" :col="1" @click="doMarkHandler" />
-                <Cell :row="2" :col="2" @click="doMarkHandler" />
-            
-            </div>
+            <Cell :row="1" :col="0" @click="doMarkHandler" />
+            <Cell :row="1" :col="1" @click="doMarkHandler" />
+            <Cell :row="1" :col="2" @click="doMarkHandler" />
 
         </div>
+        <div class="row">
+        
+            <Cell :row="2" :col="0" @click="doMarkHandler" />
+            <Cell :row="2" :col="1" @click="doMarkHandler" />
+            <Cell :row="2" :col="2" @click="doMarkHandler" />
+        
+        </div>
 
-        <!-- <pre>{{ store.getters.getBoard }}</pre> -->
+        <!-- <pre>{{ store.getters.board }}</pre> -->
+        <!-- <pre>{{ store.getters.boardMap }}</pre>
+        <pre>{{ store.getters.winMap }}</pre>
+        <pre>{{ store.getters.playerPath }}</pre> -->
 
-        <footer class="board__footer">
-            
-            <Button v-if="store.getters.gameFinished" @click="resetHandler" icon="arrow-clockwise">Play again</Button>
-            <Button v-else @click="resetHandler" type="secundary" icon="arrow-clockwise">Reset</Button>
-
-        </footer>
-
-    </section>
+    </div>
 </template>
 
 <script setup>
 
 import Cell from './Cell'
-import Button from './Button'
 
-import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
 
-const title = computed(() => store.getters.gameFinished
-    ? store.getters.winner == null ? 'Draw Game!' : `Player "${store.getters.winner.toUpperCase()}" WIN!`
-    : `Player "${store.getters.playerTurn.toUpperCase()}" turn`
-)
+store.watch((state, getters) => getters.turnCounter, (turnCounter) =>{
+    
+    if(
+        turnCounter == 0
+        && store.getters.players == 1
+        && store.getters.playerTurn == store.getters.computerPlayer
+    )
+        computerTurn()
+
+})
 
 const doMarkHandler = (row, col) => {
 
-    if(store.getters.getBoard[row][col] != null || store.getters.gameFinished)
+    if(store.getters.board[row][col] != null || store.getters.gameFinished)
         return
 
     store.dispatch('markBoardCell', { row, col })
@@ -70,67 +60,217 @@ const doMarkHandler = (row, col) => {
     if(store.getters.turnCounter > 2)
         checkEndGame()
     
-    if(!store.getters.gameFinished)
-        store.dispatch('changeTurn')
+    if(store.getters.gameFinished)
+        return
+        
+    store.dispatch('changeTurn')
+
+    if (store.getters.players == 1 && store.getters.playerTurn == store.getters.computerPlayer)
+        computerTurn()
 
 }
 
 const checkEndGame = () => {
 
-    let checkReturn = null
+    let winLine = checkWinLine()
 
-    for (let i = 0; i <= 2; i++) {
-        for (let j = 0; j <= 2; j++) {
-
-            if(i == 2 && j == 1)
-                continue
-
-            checkReturn = i == 0
-                ? checkLine('row', j)
-                : i == 1
-                    ? checkLine('col', j)
-                    : checkLine('diag', j)
-        
-            if(checkReturn)
-                store.commit('setWinner')
-        
-        }
-    }
+    if(winLine != null)
+        store.dispatch('setWinner', winLine)
 
     if(store.getters.winner != null || store.getters.turnCounter == 9)
-        store.commit('finishGame')
+        store.dispatch('finishGame')
 
 }
 
-const checkLine = (direction, i) => {
+const checkWinLine = (playerPath = store.getters.playerPath[store.getters.playerTurn]) => {
 
-    let
-        row1 = direction == 'row' ? i : 0,
-        row2 = direction == 'row' ? i : 1,
-        row3 = direction == 'row' ? i : 2,
-        col1 = direction == 'col' ? i : direction == 'diag' ? i : 0,
-        col2 = direction == 'col' ? i : direction == 'diag' ? i + (i == 0 ? 1 : -1) : 1,
-        col3 = direction == 'col' ? i : direction == 'diag' ? i + (i == 0 ? 2 : -2) : 2
+    for (let i = 0; i <= 7; i++)
+        if(playerPath % store.getters.winMap[i].hash == 0)
+            return store.getters.winMap[i].cells
 
-    let isWinLine = (
-        store.getters.playerTurn == store.getters.getBoard[row1][col1] &&
-        store.getters.getBoard[row1][col1] == store.getters.getBoard[row2][col2] &&
-        store.getters.getBoard[row2][col2] == store.getters.getBoard[row3][col3]
-    )
+    return null
+    
+}
 
-    if(isWinLine) {
+const checkIfHasWinnerPath = (playerPath) => {
+
+    for (let row = 0; row < 3; row++)
+        for (let col = 0; col < 3; col++)
+            if(
+                store.getters.board[row][col] == null
+                && checkWinLine(playerPath * store.getters.boardMap[row][col]) != null
+            )
+                return {
+                    row: row,
+                    col: col
+                }
+
+    return null
+
+}
+
+const computerTurn = () => {
+
+    let nextMark = store.getters.difficulty == 'easy'
+        ? computerEasy()
+        : store.getters.difficulty == 'normal'
+            ? computerNormal()
+            : computerHard()
+
+    doMarkHandler(nextMark.row, nextMark.col)
+
+}
+
+const computerEasy = () => {
+
+    const nextMark = {
+        row: null,
+        col: null
+    }
+    
+    do {
         
-        store.commit('markWinLine', { row: row1, col: col1})
-        store.commit('markWinLine', { row: row2, col: col2})
-        store.commit('markWinLine', { row: row3, col: col3})
+        nextMark.row = Math.floor(Math.random() * 3)
+        nextMark.col = Math.floor(Math.random() * 3)
 
     }
+    while (
+        store.getters.board[nextMark.row][nextMark.col] != null
+        && store.getters.turnCounter < 9
+    )
+    
+    return nextMark
+    
+}
 
-    return isWinLine
+const computerNormal = () => {
+    
+    let nextMark = null
+
+    // Primeira jogada
+    if (store.getters.turnCounter < 2)
+        nextMark = computerEasy()
+
+    // Verificar se pode ganhar
+    if(nextMark == null)
+        nextMark = checkIfHasWinnerPath(store.getters.playerPath[store.getters.computerPlayer])
+
+    // Verificar se está em risco
+    if(nextMark == null)
+        nextMark = checkIfHasWinnerPath(store.getters.playerPath[store.getters.humanPlayer])
+
+    // Marcar melhor jogada
+    if(nextMark == null)
+        for (let row = 0; row < 3; row++)
+            for (let col = 0; col < 3; col++)
+                if(
+                    nextMark == null
+                    && store.getters.board[row][col] == null
+                    && checkIfHasWinnerPath(store.getters.playerPath[store.getters.computerPlayer] * store.getters.boardMap[row][col]) != null
+                )
+                    nextMark = {
+                        row: row,
+                        col: col
+                    }
+
+    // Marca aleatório
+    if(nextMark == null)
+        nextMark = computerEasy()
+
+    return nextMark
 
 }
 
-const resetHandler = () => store.commit('reset')
+const computerHard = () => {
+    
+    let nextMark = null
+
+    // Primeira jogada
+    if (store.getters.turnCounter <= 1)
+        if(store.getters.board[1][1] == null)
+            nextMark = {
+                row: 1,
+                col: 1,
+            }
+        else
+            nextMark = {
+                row: [0, 2][Math.floor(Math.random() * 2)],
+                col: [0, 2][Math.floor(Math.random() * 2)],
+            }
+
+    // Verificar se pode ganhar
+    if(nextMark == null)
+        nextMark = checkIfHasWinnerPath(store.getters.playerPath[store.getters.computerPlayer])
+
+    // Verificar se está em risco
+    if(nextMark == null)
+        nextMark = checkIfHasWinnerPath(store.getters.playerPath[store.getters.humanPlayer])
+
+    // Marcar melhor jogada - 1
+    if(nextMark == null)
+        if(store.getters.turnCounter == 2)
+            if(store.getters.board[0][1] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 0,
+                    col: [0, 2][Math.floor(Math.random() * 2)],
+                }
+            else if(store.getters.board[1][0] == store.getters.humanPlayer)
+                nextMark = {
+                    row: [0, 2][Math.floor(Math.random() * 2)],
+                    col: 0,
+                }
+            else if(store.getters.board[2][1] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 2,
+                    col: [0, 2][Math.floor(Math.random() * 2)],
+                }
+            else if(store.getters.board[1][2] == store.getters.humanPlayer)
+                nextMark = {
+                    row: [0, 2][Math.floor(Math.random() * 2)],
+                    col: 2,
+                }
+            else if(store.getters.board[0][0] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 2,
+                    col: 2,
+                }
+            else if(store.getters.board[0][2] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 2,
+                    col: 0,
+                }
+            else if(store.getters.board[2][0] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 0,
+                    col: 2,
+                }
+            else if(store.getters.board[2][2] == store.getters.humanPlayer)
+                nextMark = {
+                    row: 0,
+                    col: 0,
+                }
+    
+    // Marcar melhor jogada - 2
+    if(nextMark == null)
+        for (let row = 0; row < 3; row++)
+            for (let col = 0; col < 3; col++)
+                if(
+                    nextMark == null
+                    && store.getters.board[row][col] == null
+                    && checkIfHasWinnerPath(store.getters.playerPath[store.getters.computerPlayer] * store.getters.boardMap[row][col]) != null
+                )
+                    nextMark = {
+                        row: row,
+                        col: col
+                    }
+
+    // Marca aleatório
+    if(nextMark == null)
+        nextMark = computerEasy()
+
+    return nextMark
+
+}
 
 </script>
 
@@ -138,32 +278,10 @@ const resetHandler = () => store.commit('reset')
 
 .board {
 
-    margin-bottom: 2rem;
-
-    &__title {
-        
-        font-size: 2rem;
-        font-weight: 400;
-        margin: 0 0 3rem 0;
-        text-align: center;
-
-    }
-
-    &__content {
-        
-        border-radius: 15px;
-        margin: 0 auto 2rem auto;
-        overflow: hidden;
-        width: $boardSize;
-
-    }
-    
-    &__footer {
-    
-        display: flex;
-        justify-content: center;
-    
-    }
+    border-radius: 15px;
+    margin: 0 auto 2rem auto;
+    overflow: hidden;
+    width: $boardSize;
 
 }
 

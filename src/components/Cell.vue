@@ -8,12 +8,12 @@
         @click="clickHandler"
     >
 
-        <div v-if="enable || getBoardCell != null" :class="[
+        <div v-if="enable || boardCell != null" :class="[
             'cell__mark',
-            {'cell__mark--empty': !getBoardCell},
-            `cell__mark--${getBoardCell}`
+            {'cell__mark--empty': !boardCell},
+            `cell__mark--${boardCell}`
         ]">
-            {{ getBoardCell || playerTurn }}
+            {{ boardCell || playerTurn }}
         </div>
     
     </button>
@@ -36,7 +36,7 @@ const props = defineProps({
 
 const playerTurn = computed(() => store.getters.playerTurn)
 const enable = computed(() => !store.getters.gameFinished)
-const getBoardCell = computed(() => store.getters.getBoard[props.row][props.col])
+const boardCell = computed(() => store.getters.board[props.row][props.col])
 const success = computed(() => store.getters.getWinLine[props.row][props.col])
 const position = computed(() => [
     ['top-left', 'top', 'top-right'],
